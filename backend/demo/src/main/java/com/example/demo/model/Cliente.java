@@ -63,6 +63,18 @@ public class Cliente {
         this.idCliente = idCliente;
     }
 
+    public void setNome(String nome) {
+        this.nome = nome;
+    }
+
+    public void setSobrenome(String sobrenome) {
+        this.sobrenome = sobrenome;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
+    }
+
     public void setSenha(String senha) {
         this.senha = senha;
     }

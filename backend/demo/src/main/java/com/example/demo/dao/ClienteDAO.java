@@ -4,6 +4,8 @@ import com.example.demo.config.Conexao;
 import com.example.demo.model.Cliente;
 
 import java.sql.*;
+import java.util.ArrayList;
+import java.util.List;
 
 public class ClienteDAO {
     public Cliente inserir(Cliente cliente) {
@@ -48,5 +50,43 @@ public class ClienteDAO {
         }
     }
 
+    public List<Cliente> listarTodos() {
+        List<Cliente> lista = new ArrayList<>();
+        Connection conn = null;
+        Conexao conexao = null;
+        Statement stmt = null;
+        ResultSet rset = null;
+        try {
+            conexao = new Conexao();
+            conn = conexao.conectar();
 
+            stmt = conn.createStatement();
+            rset = stmt.executeQuery("SELECT * FROM PRODUTO");
+
+            while (rset.next()) {
+                Cliente cliente = new Cliente();
+                cliente.setIdCliente(rset.getInt("ID_CLIENTE"));
+                cliente.setNome(rset.getString("NOME"));
+                cliente.setSobrenome(rset.getString("SOBRENOME"));
+                cliente.setEmail(rset.getString("EMAIL"));
+                cliente.setSenha(rset.getString("SENHA"));
+                cliente.setTelefone(rset.getString("TELEFONE"));
+
+                lista.add(cliente);
+            }
+
+        } catch (SQLException sqle) {
+            sqle.printStackTrace();
+            rset = null;
+        } finally {
+            try {
+                if (stmt != null) stmt.close();
+                if (rset != null) rset.close();
+            } catch (SQLException sqle) {
+                sqle.printStackTrace();
+            }
+            conexao.desconectar(conn);
+        }
+        return lista;
+    }
 }
