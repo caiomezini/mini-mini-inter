@@ -1,31 +1,36 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="cadastro.css">
     <title>Register Page</title>
 </head>
+
 <body>
-    <h1>Register Page</h1>
-    <form action="/register" method="post">
-        <label for="name">Name:</label>
-        <input type="text" id="name" name="name" required>
+    <main>
+        <h1>Register Page</h1>
+        <form action="/register" method="post">
+            <label for="name">Name:</label>
+            <input type="text" id="name" name="name" required>
 
-        <label for="surname">Surname:</label>
-        <input type="text" id="surname" name="surname" required>
+            <label for="surname">Surname:</label>
+            <input type="text" id="surname" name="surname" required>
 
-        <label for="email">Email:</label>
-        <input type="email" id="email" name="email" required>
+            <label for="email">Email:</label>
+            <input type="email" id="email" name="email" required placeholder="example@example.com">
 
-        <label for="password">Password:</label>
-        <input type="password" id="password" name="password" required>
+            <label for="password">Password:</label>
+            <input type="password" id="password" name="password" required>
 
-        <label for="telephone">Telephone:</label>
-        <input type="tel" id="telephone" name="telephone">
+            <label for="telephone">Telephone:</label>
+            <input type="tel" id="telephone" name="telephone" placeholder="(xxx) xxxxx-xxxx">
 
-        <button type="submit">Register</button>
-    </form>
-    <p>Already have an account? <a href="./index.html">Login here</a></p>
+            <button type="submit">Register</button>
+        </form>
+        <p>Already have an account? <a href="./index.html">Login here</a></p>
+    </main>
 </body>
+
 </html>
