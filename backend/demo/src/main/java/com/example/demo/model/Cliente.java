@@ -58,6 +58,11 @@ public class Cliente {
     }
 
 //    SETTERS
+
+    public void setIdCliente(int idCliente) {
+        this.idCliente = idCliente;
+    }
+
     public void setSenha(String senha) {
         this.senha = senha;
     }
