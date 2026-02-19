@@ -98,7 +98,7 @@ public class ClienteDAO {
             conexao = new Conexao();
             conn = conexao.conectar();
             pstmt = conn.prepareStatement("UPDATE CLIENTE SET NOME = ? WHERE ID_CLIENTE = ?");
-            pstmt.setDouble(1, novoNome);
+            pstmt.setString(1, novoNome);
             pstmt.setInt(2, id);
             int linhas = pstmt.executeUpdate();
 

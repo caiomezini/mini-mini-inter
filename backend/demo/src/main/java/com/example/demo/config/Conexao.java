@@ -9,9 +9,9 @@ public class Conexao {
         Connection conn = null;
 
         try {
-            Class.forName("org.postresql.Driver");
+            Class.forName("org.postgresql.Driver");
 
-            conn = DriverManager.getConnection("jdbc:postgre://pg-2d4c8d40-germinare-3f4a.b.aivencloud.com:28495/dbMiniMiniInter",
+            conn = DriverManager.getConnection("jdbc:postgresql://pg-2d4c8d40-germinare-3f4a.b.aivencloud.com:28495/dbMiniMiniInter",
                     "avnadmin", "AVNS_SHmYjbIrMU9XlLPqXAZ");
         } catch (SQLException sqle) {
             sqle.printStackTrace();

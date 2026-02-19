@@ -29,7 +29,7 @@ public class CadastroServlet extends HttpServlet {
         String regexDominios = "^[^@]+@(gmail\\.com|yahoo\\.com|hotmail\\.com|outlook\\.com)$";
 
         if (email == null || email.trim().isEmpty() || !email.matches(regexDominios)) {
-            request.setAttribute("erroEmail", "E-mail inválido ou domínio não suportado!");
+            request.setAttribute("erroEmail", "E-mail inválido!");
             request.getRequestDispatcher("cadastro.jsp").forward(request, response);
             return;
         } else {
@@ -39,7 +39,7 @@ public class CadastroServlet extends HttpServlet {
 
         if (senha == null || !senha.matches(regexSenha)) {
             request.setAttribute("erroSenha", "A senha deve ter 8+ caracteres, 1 maiúscula, 1 número e 1 caractere especial.");
-            response.sendRedirect("cadastro.html?error=senha_invalida");
+            request.getRequestDispatcher("cadastro.jsp").forward(request,response);
             return;
         } else {
             novoCliente.setSenha(senha);
@@ -51,10 +51,11 @@ public class CadastroServlet extends HttpServlet {
         ClienteDAO dao = new ClienteDAO();
         try {
             dao.inserir(novoCliente);
-            response.sendRedirect("lista-clientes.jsp?msg=sucesso");
+            response.sendRedirect("cadastro.jsp?status=sucesso");
         } catch (Exception e) {
             e.printStackTrace();
-            response.sendRedirect("cadastro.html?error=true");
+            request.setAttribute("erroGeral", "Não foi possível fazer o cadastro. Tente novamente mais tarde.");
+            request.getRequestDispatcher("cadastro.jsp").forward(request, response);
         }
 
     }
