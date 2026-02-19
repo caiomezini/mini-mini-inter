@@ -89,4 +89,36 @@ public class ClienteDAO {
         }
         return lista;
     }
+
+    public int alterarNome(int id, String novoNome) {
+        Connection conn = null;
+        Conexao conexao = null;
+        PreparedStatement pstmt = null;
+        try {
+            conexao = new Conexao();
+            conn = conexao.conectar();
+            pstmt = conn.prepareStatement("UPDATE CLIENTE SET NOME = ? WHERE ID = ?");
+            pstmt.setDouble(1, novoNome);
+            pstmt.setInt(2, id);
+            int linhas = pstmt.executeUpdate();
+
+            if (linhas > 0) {
+                return 1; //sucesso
+            } else {
+                return 0; //não funcionou
+            }
+        } catch (SQLException sqle) {
+            sqle.printStackTrace();
+            return -1; //erro
+        } finally {
+            try {
+                if (pstmt != null) pstmt.close();
+            } catch (SQLException sqle) {
+                sqle.printStackTrace();
+            }
+            conexao.desconectar(conn);
+        }
+    }
+
+
 }
