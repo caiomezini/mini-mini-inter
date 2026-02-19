@@ -39,7 +39,7 @@ public class CadastroServlet extends HttpServlet {
 
         if (senha == null || !senha.matches(regexSenha)) {
             request.setAttribute("erroSenha", "A senha deve ter 8+ caracteres, 1 maiúscula, 1 número e 1 caractere especial.");
-            request.getRequestDispatcher("cadastro.jsp").forward(request, response);
+            response.sendRedirect("cadastro.html?error=senha_invalida");
             return;
         } else {
             novoCliente.setSenha(senha);
