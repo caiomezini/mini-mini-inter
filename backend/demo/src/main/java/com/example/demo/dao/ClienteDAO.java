@@ -120,5 +120,33 @@ public class ClienteDAO {
         }
     }
 
+    public int remover(int id) {
+        Connection conn = null;
+        Conexao conexao = null;
+        PreparedStatement pstmt = null;
+        try {
+            conexao = new Conexao();
+            conn = conexao.conectar();
+            pstmt = conn.prepareStatement("DELETE FROM CLIENTE WHERE ID = ?");
+            pstmt.setInt(1, id);
+            int linhas = pstmt.executeUpdate();
 
+            if (linhas > 0) {
+                return 1; // sucesso
+            } else {
+                return 0; // não funcionou
+            }
+
+        } catch (SQLException sqle) {
+            sqle.printStackTrace();
+            return -1; // erro
+        } finally {
+            try {
+                if (pstmt != null) pstmt.close();
+            } catch (SQLException sqle) {
+                sqle.printStackTrace();
+            }
+            conexao.desconectar(conn);
+        }
+    }
 }
