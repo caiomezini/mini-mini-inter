@@ -97,7 +97,7 @@ public class ClienteDAO {
         try {
             conexao = new Conexao();
             conn = conexao.conectar();
-            pstmt = conn.prepareStatement("UPDATE CLIENTE SET NOME = ? WHERE ID = ?");
+            pstmt = conn.prepareStatement("UPDATE CLIENTE SET NOME = ? WHERE ID_CLIENTE = ?");
             pstmt.setDouble(1, novoNome);
             pstmt.setInt(2, id);
             int linhas = pstmt.executeUpdate();
@@ -127,7 +127,7 @@ public class ClienteDAO {
         try {
             conexao = new Conexao();
             conn = conexao.conectar();
-            pstmt = conn.prepareStatement("DELETE FROM CLIENTE WHERE ID = ?");
+            pstmt = conn.prepareStatement("DELETE FROM CLIENTE WHERE ID_CLIENTE = ?");
             pstmt.setInt(1, id);
             int linhas = pstmt.executeUpdate();
 
