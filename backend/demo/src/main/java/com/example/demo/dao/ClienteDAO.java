@@ -101,6 +101,8 @@ public class ClienteDAO {
             conn = conexao.conectar();
 
             pstmt = conn.prepareStatement("SELECT * FROM CLIENTE WHERE EMAIL = ? AND SENHA = ?");
+            pstmt.setString(1, email);
+            pstmt.setString(2, senha);
             rset = pstmt.executeQuery();
 
             if (rset.next()) {
@@ -111,11 +113,14 @@ public class ClienteDAO {
                 clienteLogado.setEmail(rset.getString("EMAIL"));
                 clienteLogado.setSenha(rset.getString("SENHA"));
                 clienteLogado.setTelefone(rset.getString("TELEFONE"));
+                return clienteLogado;
             }
+
 
         } catch (SQLException sqle) {
             sqle.printStackTrace();
             rset = null;
+            return null;
         } finally {
             try {
                 if (pstmt != null) pstmt.close();
@@ -124,8 +129,6 @@ public class ClienteDAO {
                 sqle.printStackTrace();
             }
             conexao.desconectar(conn);
-        }
-        return clienteLogado;
         }
     }
 

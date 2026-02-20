@@ -7,6 +7,7 @@ import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
 
 import java.io.IOException;
 
@@ -23,6 +24,13 @@ public class LoginServlet extends HttpServlet {
         ClienteDAO dao = new ClienteDAO();
         Cliente clienteLogado = dao.validarLogin(email, senha);
 
-
+        if (clienteLogado != null) {
+            HttpSession session = request.getSession();
+            session.setAttribute("usuarioLogado", clienteLogado);
+            response.sendRedirect("inicio.jsp");
+        } else {
+            request.setAttribute("erroLogin", "E-mail ou senha incorretos.");
+            request.getRequestDispatcher("index.jsp").forward(request, response);
+        }
     }
 }
