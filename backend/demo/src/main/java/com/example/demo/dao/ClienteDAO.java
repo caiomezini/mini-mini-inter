@@ -90,6 +90,45 @@ public class ClienteDAO {
         return lista;
     }
 
+    public Cliente validarLogin(String email, String senha) {
+        Connection conn = null;
+        Conexao conexao = null;
+        ResultSet rset = null;
+        PreparedStatement pstmt = null;
+        Cliente clienteLogado = null;
+        try {
+            conexao = new Conexao();
+            conn = conexao.conectar();
+
+            pstmt = conn.prepareStatement("SELECT * FROM CLIENTE WHERE EMAIL = ? AND SENHA = ?");
+            rset = pstmt.executeQuery();
+
+            if (rset.next()) {
+                clienteLogado = new Cliente();
+                clienteLogado.setIdCliente(rset.getInt("ID_CLIENTE"));
+                clienteLogado.setNome(rset.getString("NOME"));
+                clienteLogado.setSobrenome(rset.getString("SOBRENOME"));
+                clienteLogado.setEmail(rset.getString("EMAIL"));
+                clienteLogado.setSenha(rset.getString("SENHA"));
+                clienteLogado.setTelefone(rset.getString("TELEFONE"));
+            }
+
+        } catch (SQLException sqle) {
+            sqle.printStackTrace();
+            rset = null;
+        } finally {
+            try {
+                if (pstmt != null) pstmt.close();
+                if (rset != null) rset.close();
+            } catch (SQLException sqle) {
+                sqle.printStackTrace();
+            }
+            conexao.desconectar(conn);
+        }
+        return clienteLogado;
+        }
+    }
+
     public int alterarNome(int id, String novoNome) {
         Connection conn = null;
         Conexao conexao = null;
