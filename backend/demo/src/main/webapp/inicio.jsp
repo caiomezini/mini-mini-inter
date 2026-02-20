@@ -8,7 +8,7 @@
 
 <%
   if (session.getAttribute("usuarioLogado") == null) {
-    response.sendRedirect("login.jsp?erro=proibido");
+    response.sendRedirect("index.jsp?erro=proibido");
     return;
   }
 %>
@@ -22,10 +22,12 @@
   <title>Home Page</title>
 </head>
 <body>
-  <%
-    com.example.demo.model.Cliente c = (com.example.demo.model.Cliente) session.getAttribute("usuarioLogado");
-  %>
-  <h1>Seja Bem-vindo <%= c.getNome() %>!</h1>
-  <a href="LogoutServlet" style="color: red;">Sair do sistema</a>
+  <main>
+    <%
+      com.example.demo.model.Cliente c = (com.example.demo.model.Cliente) session.getAttribute("usuarioLogado");
+    %>
+    <h1>Seja Bem-vindo <%= c.getNome() %>!</h1>
+    <a href="LogoutServlet" style="color: red;"><button>Sair do sistema</button></a>
+  </main>
 </body>
 </html>

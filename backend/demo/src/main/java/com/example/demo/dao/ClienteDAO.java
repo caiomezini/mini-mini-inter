@@ -113,7 +113,6 @@ public class ClienteDAO {
                 clienteLogado.setEmail(rset.getString("EMAIL"));
                 clienteLogado.setSenha(rset.getString("SENHA"));
                 clienteLogado.setTelefone(rset.getString("TELEFONE"));
-                return clienteLogado;
             }
 
 
@@ -130,6 +129,7 @@ public class ClienteDAO {
             }
             conexao.desconectar(conn);
         }
+        return clienteLogado;
     }
 
     public int alterarNome(int id, String novoNome) {

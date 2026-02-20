@@ -17,7 +17,7 @@
 <body>
 <main>
     <h1>Login Page</h1>
-    <form action="/login" method="post">
+    <form action="login" method="post">
         <label for="email">Email:</label>
         <input type="email" id="email" name="email" required placeholder="example@example.com">
         <label for="password">Password:</label>
