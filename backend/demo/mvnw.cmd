@@ -85,25 +85,25 @@ goto error
 @REM Find the project base dir, i.e. the directory that contains the folder ".mvn".
 @REM Fallback to current working directory if not found.
 
-set MAVEN_PROJECTBASEDIR=%MAVEN_BASEDIR%
+set "MAVEN_PROJECTBASEDIR=%MAVEN_BASEDIR%"
 IF NOT "%MAVEN_PROJECTBASEDIR%"=="" goto endDetectBaseDir
 
-set EXEC_DIR=%CD%
-set WDIR=%EXEC_DIR%
+set "EXEC_DIR=%CD%"
+set "WDIR=%EXEC_DIR%"
 :findBaseDir
 IF EXIST "%WDIR%"\.mvn goto baseDirFound
 cd ..
 IF "%WDIR%"=="%CD%" goto baseDirNotFound
-set WDIR=%CD%
+set "WDIR=%CD%"
 goto findBaseDir
 
 :baseDirFound
-set MAVEN_PROJECTBASEDIR=%WDIR%
+set "MAVEN_PROJECTBASEDIR=%WDIR%"
 cd "%EXEC_DIR%"
 goto endDetectBaseDir
 
 :baseDirNotFound
-set MAVEN_PROJECTBASEDIR=%EXEC_DIR%
+set "MAVEN_PROJECTBASEDIR=%EXEC_DIR%"
 cd "%EXEC_DIR%"
 
 :endDetectBaseDir

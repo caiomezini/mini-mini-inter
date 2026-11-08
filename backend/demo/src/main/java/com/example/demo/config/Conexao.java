@@ -6,20 +6,25 @@ import java.sql.SQLException;
 
 public class Conexao {
     public Connection conectar() {
-        Connection conn = null;
+        String url = variavelObrigatoria("DB_URL");
+        String usuario = variavelObrigatoria("DB_USER");
+        String senha = variavelObrigatoria("DB_PASSWORD");
 
         try {
             Class.forName("org.postgresql.Driver");
-
-            conn = DriverManager.getConnection("jdbc:postgresql://pg-2d4c8d40-germinare-3f4a.b.aivencloud.com:28495/dbMiniMiniInter",
-                    "avnadmin", "AVNS_SHmYjbIrMU9XlLPqXAZ");
-        } catch (SQLException sqle) {
-            sqle.printStackTrace();
-        } catch (ClassNotFoundException cnfe) {
-            cnfe.printStackTrace();
-        } finally {
-            return conn;
+            return DriverManager.getConnection(url, usuario, senha);
+        } catch (SQLException | ClassNotFoundException e) {
+            // Nao inclui URL, usuario ou senha na mensagem.
+            throw new IllegalStateException("Nao foi possivel conectar ao PostgreSQL.", e);
         }
+    }
+
+    private String variavelObrigatoria(String nome) {
+        String valor = System.getenv(nome);
+        if (valor == null || valor.isBlank()) {
+            throw new IllegalStateException("Variavel de ambiente obrigatoria ausente: " + nome);
+        }
+        return valor;
     }
 
     public void desconectar(Connection conn) {
