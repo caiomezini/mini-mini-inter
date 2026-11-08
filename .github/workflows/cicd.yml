@@ -1,0 +1,159 @@
+name: CI/CD - Maven, Docker e Render
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: cicd-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  ci:
+    name: CI - compilar e verificar aplicacao
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - name: Checkout do projeto
+        uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      - name: Configurar Java 11 e cache Maven
+        uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: '11'
+          cache: maven
+          cache-dependency-path: backend/demo/pom.xml
+
+      - name: Resolver dependencias, compilar e verificar o WAR
+        working-directory: backend/demo
+        run: bash ./mvnw --batch-mode --no-transfer-progress verify
+
+      - name: Construir imagem Docker
+        run: docker build --tag mini-mini-inter:ci .
+
+      - name: Verificar pagina JSP no Tomcat
+        shell: bash
+        run: |
+          set -euo pipefail
+          docker run --detach --name mini-mini-inter-ci \
+            --publish 127.0.0.1:8080:8080 mini-mini-inter:ci
+          for tentativa in $(seq 1 60); do
+            if curl --fail --silent --show-error --max-time 5 \
+              http://127.0.0.1:8080/index.jsp --output /tmp/login.html \
+              && grep -q 'Login Page' /tmp/login.html; then
+              echo 'Pagina JSP servida pelo Tomcat com sucesso.'
+              exit 0
+            fi
+            sleep 2
+          done
+          echo 'A aplicacao nao respondeu com a pagina esperada.' >&2
+          exit 1
+
+      - name: Exibir logs do Tomcat em caso de falha
+        if: failure()
+        run: docker logs mini-mini-inter-ci || true
+
+      - name: Remover container temporario
+        if: always()
+        run: docker rm --force mini-mini-inter-ci || true
+
+  cd:
+    name: CD - publicar e acompanhar Render
+    needs: ci
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    concurrency:
+      group: render-production
+      cancel-in-progress: false
+    env:
+      RENDER_API_KEY: ${{ secrets.RENDER_API_KEY }}
+      RENDER_SERVICE_ID: ${{ vars.RENDER_SERVICE_ID }}
+      RENDER_SERVICE_URL: ${{ vars.RENDER_SERVICE_URL }}
+    steps:
+      - name: Publicar o commit aprovado e aguardar disponibilidade
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          import json
+          import os
+          import re
+          import sys
+          import time
+          from urllib.error import HTTPError, URLError
+          from urllib.parse import urlparse
+          from urllib.request import Request, urlopen
+
+          token = os.environ.get('RENDER_API_KEY', '')
+          service = os.environ.get('RENDER_SERVICE_ID', '')
+          public_url = os.environ.get('RENDER_SERVICE_URL', '').rstrip('/')
+          commit = os.environ['GITHUB_SHA']
+          if not token or not re.fullmatch(r'srv-[A-Za-z0-9]+', service):
+              sys.exit('Configure RENDER_API_KEY (secret) e RENDER_SERVICE_ID (variable).')
+          parsed = urlparse(public_url)
+          if parsed.scheme != 'https' or not parsed.netloc or parsed.query or parsed.fragment:
+              sys.exit('RENDER_SERVICE_URL deve ser a URL publica HTTPS do servico, sem query ou fragmento.')
+
+          base = f'https://api.render.com/v1/services/{service}/deploys'
+
+          def api(url, payload=None):
+              data = None if payload is None else json.dumps(payload).encode()
+              req = Request(url, data=data, headers={
+                  'Authorization': f'Bearer {token}',
+                  'Accept': 'application/json',
+                  'Content-Type': 'application/json',
+              })
+              try:
+                  with urlopen(req, timeout=30) as response:
+                      return json.load(response)
+              except HTTPError as error:
+                  sys.exit(f'Render API retornou HTTP {error.code}. Consulte credenciais, permissoes e o painel.')
+              except (URLError, TimeoutError):
+                  sys.exit('Falha de rede ao acessar a API do Render. Consulte o painel antes de repetir o deploy.')
+
+          deploy = api(base, {'commitId': commit, 'clearCache': 'do_not_clear'})
+          deploy_id = deploy.get('id', '')
+          if not re.fullmatch(r'dep-[A-Za-z0-9]+', deploy_id):
+              sys.exit('Render nao retornou um identificador de deploy valido.')
+          print(f'Deploy solicitado: {deploy_id}; commit: {commit}', flush=True)
+          failed = {'build_failed', 'update_failed', 'pre_deploy_failed', 'canceled', 'deactivated'}
+          deadline = time.monotonic() + 20 * 60
+          while time.monotonic() < deadline:
+              current = api(f'{base}/{deploy_id}')
+              status = current.get('status')
+              print(f'Status do deploy: {status}', flush=True)
+              if status == 'live':
+                  if current.get('commit', {}).get('id') != commit:
+                      sys.exit('O commit publicado informado pelo Render difere do commit aprovado.')
+                  break
+              if status in failed:
+                  sys.exit(f'Deploy falhou: {status}. Consulte os logs no Render.')
+              time.sleep(20)
+          else:
+              sys.exit('Tempo limite aguardando Render. O deploy pode continuar; consulte o painel.')
+
+          # Sem Authorization: a chave da API nunca e enviada para a aplicacao publica.
+          for attempt in range(12):
+              try:
+                  with urlopen(f'{public_url}/index.jsp', timeout=20) as response:
+                      body = response.read().decode('utf-8', errors='replace')
+                      if response.status == 200 and 'Login Page' in body:
+                          print('Aplicacao publicada e pagina JSP acessivel.', flush=True)
+                          with open(os.environ['GITHUB_STEP_SUMMARY'], 'a', encoding='utf-8') as summary:
+                              summary.write(f'## Deploy concluido\n\nCommit: `{commit}`\n\n')
+                              summary.write(f'Deploy Render: `{deploy_id}`\n\n')
+                              summary.write('Status: live. Pagina index.jsp respondeu HTTP 200 com o conteudo esperado.\n')
+                          sys.exit(0)
+              except (HTTPError, URLError, TimeoutError):
+                  pass
+              time.sleep(10)
+          sys.exit('Render informou live, mas a pagina publica nao passou na verificacao HTTP.')
+          PY

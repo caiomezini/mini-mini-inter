@@ -1,0 +1,13 @@
+.git
+.github
+**/.idea
+**/target
+**/.env
+**/.env.*
+**/*.log
+**/*.jar
+frontend
+database
+docs
+work
+outputs
