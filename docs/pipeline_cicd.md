@@ -1,13 +1,13 @@
 # Implementação da pipeline CI/CD
 
-Status em 08/11/2026: primeira implementação local, ainda NÃO testada nem publicada.
+Status em 08/11/2026: testes locais e CI aprovados. O CD concluiu a publicação após reexecução do job na `main`. Falta registrar um novo push com publicação na primeira tentativa e o teste funcional com o Aiven.
 Repositório: https://github.com/caiomezini/mini-mini-inter
 Pipeline: `.github/workflows/cicd.yml`
 Branch de trabalho: `pipeline_cicd`.
 
 ## Responsabilidades e escopo
 
-O usuário executará todos os testes e validações, commits e pushes. O assistente preparou os arquivos e as instruções e leu o código; não executou Maven, Docker, testes, deploys ou validações automáticas. Não há evidência de sucesso ainda. O PDF final será produzido após a execução manual, correções eventualmente aprovadas e coleta de evidências.
+O usuário executa os testes, commits, pushes e a configuração do Render e do GitHub. O assistente preparou a implementação, corrigiu o Maven Wrapper para Windows após aprovação e consultou os registros de execuções já iniciadas pelo usuário. O PDF final será produzido após a conclusão da coleta de evidências.
 
 A cópia local usada é `C:\Users\caiomachado-ieg\OneDrive - Instituto J&F\Área de Trabalho\Outras_Coisas\mini_mini_inter`.
 A branch foi criada nessa cópia, sem clonagem. A alteração preexistente em `backend/.idea/misc.xml` pertence ao usuário e foi preservada.
@@ -218,7 +218,7 @@ Para demonstrar que uma CI com falha bloqueia CD, falta planejar e aprovar um te
 
 ## Registro dos prompts
 
-Contagem atual: **2 prompts relevantes de desenvolvimento**. A pergunta sobre por que clonar o projeto é esclarecimento e não entra na contagem solicitada, mas sua orientação foi incorporada. A última autorização fornece o caminho necessário à implementação e foi registrada como prompt relevante 2. Não contar chamadas internas de ferramentas como prompts do usuário.
+Contagem atual de **9 prompts relevantes**. A contagem inclui pedidos de implementação, informações novas para executar o trabalho, erros diagnosticados e mensagens com resultados ou evidências novos. A pergunta de esclarecimento sobre clonagem e as aprovações que apenas confirmam uma proposta ficam fora da contagem. A autorização que forneceu o caminho do repositório entra como prompt 2.
 
 ### Prompt relevante 1 - solicitação inicial
 
@@ -312,23 +312,86 @@ Resultado: branch pipeline_cicd criada; arquivos aprovados implementados; guia m
 Problemas: acesso de escrita inicialmente restrito e criação da branch inicialmente bloqueada nos metadados .git. Resolvidos mediante concessão de acesso à pasta e aos metadados do Git. Alteração preexistente de IDE preservada.
 Alterações realizadas: criação de .github/workflows/cicd.yml, Dockerfile, .dockerignore e docs/pipeline_cicd.md; atualização de Conexao.java para variáveis de ambiente e erros explícitos. Nenhum commit, push ou teste foi executado pelo assistente.
 
+### Prompt relevante 3 - falha do Maven Wrapper no Windows
+
+> Quando rodei esse código, retornou isso:
+
+O comando selecionado era `.\mvnw.cmd --batch-mode --no-transfer-progress verify`. A saída mostrava `'F' não é reconhecido`, o caminho truncado em `OneDrive - Instituto J` e `ClassNotFoundException: org.apache.maven.wrapper.MavenWrapperMain`.
+
+- **Resultado e problema**. O Wrapper parava antes da compilação. O `cmd.exe` interpretava o `&` de `Instituto J&F` como separador em atribuições sem aspas.
+- **Alteração**. Após a autorização do usuário, foram colocadas aspas em seis atribuições de caminho no `backend/demo/mvnw.cmd`. O usuário repetiu o comando e enviou o `BUILD SUCCESS` no prompt 6.
+
+### Prompt relevante 4 - Dockerfile não encontrado
+
+> Agora deu problema quando rodei esse comando e devolveu isso:
+
+O usuário executou `docker build --tag mini-mini-inter:local .` em `backend/demo` e recebeu `failed to read dockerfile`.
+
+- **Resultado e problema**. O ponto indicava a pasta atual como contexto. O Dockerfile fica na raiz do repositório.
+- **Alteração**. A orientação de teste passou a explicitar a volta à raiz com `cd ..\..` antes de repetir o build. A correção foi no comando executado pelo usuário.
+
+### Prompt relevante 5 - resultado do teste em vídeo
+
+> Gravei tanto o vídeo, quanto tirei alguns prints desse teste, pois é melhor ter duas formas na hora de colocar no pdf final. Esse vídeo mostra o teste funcionando corretamente
+
+- **Resultado**. O usuário informou que o teste local com Docker funcionou e anexou `teste_docker_1.mp4`.
+- **Problema e alteração**. Nenhum erro novo foi relatado. A gravação foi registrada como evidência complementar informada pelo usuário.
+
+### Prompt relevante 6 - capturas dos testes locais
+
+> Aqui estão os prints do teste
+
+- **Resultado**. As capturas mostram Java 19.0.2 no terminal, `BUILD SUCCESS` no Maven, 17 de 17 etapas no build Docker, criação do contêiner e a página de login.
+- **Problema e alteração**. A captura da página não mostrava o endereço. O usuário a complementou no turno seguinte. O Java 19 observado no terminal foi registrado separadamente do Java 11 configurado na CI e na compilação Docker.
+
+### Prompt relevante 7 - página local com URL e CI do pull request
+
+> Aqui está a nova imagem da aplicação rodando com a URL aparecendo, ao lado estão os prints do CI/CD no github
+
+- **Resultado**. A página abriu em `127.0.0.1:8080`. No [PR #1](https://github.com/caiomezini/mini-mini-inter/pull/1) de `pipeline_cicd` para `main`, a CI passou e o CD ficou `Skipped`, como previsto.
+- **Problema e alteração**. Nenhuma falha nova. O usuário foi orientado a fazer o merge para verificar o gatilho `push` na `main`.
+
+### Prompt relevante 8 - primeira execução na main
+
+> Novas prints
+
+- **Resultado**. O merge disparou a [execução #2](https://github.com/caiomezini/mini-mini-inter/actions/runs/42535739726) para `8f67e3a`. A CI passou e o CD iniciou em seguida.
+- **Problema**. A primeira tentativa parou antes de chamar o Render. O log mostrava `RENDER_API_KEY`, `RENDER_SERVICE_ID` e `RENDER_SERVICE_URL` vazias.
+- **Alteração**. O usuário recebeu o passo a passo para criar o Web Service, configurar o segredo e as variáveis no GitHub e reexecutar o CD. A solução foi de configuração.
+
+### Prompt relevante 9 - evidências da publicação no Render e do CD
+
+> Prints e vídeos das etapas recentes
+
+- **Resultado**. As capturas mostram a criação do serviço, um deploy pelo painel e a segunda tentativa da execução #2. O GitHub Actions informou deploy `live` para o commit `8f67e3ae50e4d422089667eee8376b0a0d378ffc` e resposta HTTP 200 com a página esperada. O usuário também anexou `teste_render_2.mp4` e `teste_cd_3.mp4` como material complementar.
+- **Problema**. Foi preciso reexecutar o CD após cadastrar as configurações que faltavam na tentativa inicial.
+- **Alteração**. O usuário configurou o serviço e os valores necessários e reexecutou o job. Após aprovação, o guia passou a registrar esses resultados e a preparação do próximo PR de documentação.
+
 ## Justificativa do Render - texto original para o PDF
 
 Para subir nossa aplicação, iremos utilizar o `Render`, pois é uma ferramenta que eu já conheço, apesar de nunca ter usado antes, posso subir minha aplicação web que precisa de um sistema de back-end para funcionar corretamente, além disso, o banco de dados utilizado no projeto do github utiliza banco PostgreSQL em nuvem hospedado no Aiven.
 
-## Evidências e fechamento ainda pendentes
+## Evidências verificadas
 
-- Teste Maven local: pendente.
-- Build e página JSP no Docker local: pendentes.
-- CI de pull_request para main: pendente; CD deve estar ignorado.
-- Push/main com CI e CD aprovados: pendente.
-- Deploy live no Render com o mesmo SHA: pendente.
-- Aplicação acessível e cadastro/login/logout com Aiven: pendentes.
-- Teste controlado de bloqueio de CD por falha de CI: depende de proposta e aprovação.
-- Registro das operações manuais: preencher com os resultados reais enviados pelo usuário, incluindo troca da senha Aiven, configuração Render/GitHub, commits, pushes e testes.
-- Contagem final de prompts, principais problemas, correções, verificação e PDF: concluir somente após evidências.
+| Etapa | Resultado | Capturas de 08/11/2026 |
+| --- | --- | --- |
+| Maven local | `BUILD SUCCESS` após a correção do Wrapper | 200139 |
+| Docker local | Build 17/17, contêiner criado e login em `127.0.0.1:8080` | 200940, 201106 e 202119 |
+| PR #1 | CI aprovada e CD ignorado | 202717 e 203045 |
+| Push na main, tentativa 1 | CI aprovada e CD iniciado. Faltavam os valores de configuração do Render | 203349, 203450 e 203506 |
+| Preparação no Render | Web Service criado e deploy pelo painel ficou `Live` para `8f67e3a` | 204503, 204753 e 204843 |
+| Push na main, tentativa 2 | Reexecução manual do CD. A pipeline publicou o commit validado e verificou a página com HTTP 200 | 205814 e 205951 |
 
-Nunca substituir pendências por resultados presumidos. O PDF final reunirá link do repositório, caminho da pipeline, prompts relevantes, alterações, problemas, operações manuais, evidências e a justificativa original.
+- Pull request: https://github.com/caiomezini/mini-mini-inter/pull/1
+- Execução do GitHub Actions: https://github.com/caiomezini/mini-mini-inter/actions/runs/42535739726
+- Aplicação publicada: https://mini-mini-inter.onrender.com
+
+## Fechamento pendente
+
+- Publicar a atualização deste guia por PR e fazer o merge na `main`. Guardar o link da nova execução com CI e CD aprovados na primeira tentativa, sem acionar `Re-run jobs` ou `Manual Deploy`.
+- Verificar cadastro, login e logout com dados fictícios no serviço publicado. Registrar o resultado e preservar capturas sem credenciais.
+- Confirmar quais configurações manuais do Aiven foram aplicadas, inclusive a troca da senha anteriormente exposta, sem registrar valores.
+- Finalizar o PDF com os resultados observados, os prompts relevantes, o caminho da pipeline e a justificativa original. Usar as capturas para documentar a sequência. Registrar os vídeos como material complementar.
 
 ## Documentação técnica consultada
 
